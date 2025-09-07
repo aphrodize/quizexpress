@@ -83,7 +83,7 @@
         <div id="summary-view" class="view-container view flex-col items-center">
             <div class="card w-full p-8 md:p-12 text-center">
                 <h1 class="text-4xl md:text-5xl font-bold text-indigo-800 mb-4">สรุปผลการทดสอบ</h1>
-                <p class="text-gray-600 text-lg mb-6">นี่คือผลการทดสอบความรู้ด้าน AI ของคุณ</p>
+                <p id="summary-subtitle-text" class="text-gray-600 text-lg mb-6">นี่คือผลการทดสอบความรู้ด้าน AI ของคุณ</p>
                 <div class="chart-container my-8">
                     <canvas id="summary-chart"></canvas>
                 </div>
@@ -289,13 +289,19 @@
             switchView('summary');
             const totalQuestions = state.quiz.questions.length;
             const percentage = totalQuestions > 0 ? Math.round((state.quiz.score / totalQuestions) * 100) : 0;
+
+            document.getElementById('summary-subtitle-text').textContent = state.config.summarySubtitle || 'นี่คือผลการทดสอบความรู้ของคุณ';
             
             document.getElementById('score-text').textContent = `คะแนนของคุณ: ${state.quiz.score} / ${totalQuestions} (${percentage}%)`;
             
             let summaryMsg = '';
-            if (percentage < 50) summaryMsg = 'ยังมีโอกาสพัฒนาได้อีกเยอะเลย ลองทบทวนแล้วสู้ใหม่นะ!';
-            else if (percentage <= 75) summaryMsg = 'เยี่ยมมาก! คุณมีความเข้าใจในเรื่อง AI เป็นอย่างดี';
-            else summaryMsg = 'สุดยอด! คุณคือผู้เชี่ยวชาญด้าน AI ตัวจริง!';
+            if (percentage < 50) {
+                summaryMsg = state.config.feedbackLow || 'ยังมีโอกาสพัฒนาได้อีกเยอะเลย ลองทบทวนแล้วสู้ใหม่นะ!';
+            } else if (percentage <= 75) {
+                summaryMsg = state.config.feedbackMid || 'เยี่ยมมาก! คุณมีความเข้าใจในเรื่องนี้เป็นอย่างดี';
+            } else {
+                summaryMsg = state.config.feedbackHigh || 'สุดยอด! คุณคือผู้เชี่ยวชาญตัวจริง!';
+            }
             document.getElementById('summary-text').textContent = summaryMsg;
 
             if (state.user.recordId) {

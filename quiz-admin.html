@@ -47,6 +47,24 @@
                          <label for="quiz-subtitle" class="block text-sm font-bold text-gray-600 mb-1">คำอธิบาย (Subtitle)</label>
                          <input type="text" id="quiz-subtitle" class="w-full p-2 border border-gray-300 rounded-md">
                      </div>
+                     <hr class="my-6 border-t border-gray-200">
+                     <h3 class="text-xl font-bold text-gray-700 pt-2">ข้อความหน้าสรุปผล</h3>
+                     <div>
+                         <label for="summary-subtitle" class="block text-sm font-bold text-gray-600 mb-1">คำอธิบายหน้าสรุปผล (อยู่ใต้หัวข้อหลัก)</label>
+                         <input type="text" id="summary-subtitle" class="w-full p-2 border border-gray-300 rounded-md">
+                     </div>
+                      <div>
+                         <label for="feedback-low" class="block text-sm font-bold text-gray-600 mb-1">ข้อความให้กำลังใจ (คะแนนน้อยกว่า 50%)</label>
+                         <input type="text" id="feedback-low" class="w-full p-2 border border-gray-300 rounded-md">
+                     </div>
+                      <div>
+                         <label for="feedback-mid" class="block text-sm font-bold text-gray-600 mb-1">ข้อความชมเชย (คะแนน 50% - 75%)</label>
+                         <input type="text" id="feedback-mid" class="w-full p-2 border border-gray-300 rounded-md">
+                     </div>
+                      <div>
+                         <label for="feedback-high" class="block text-sm font-bold text-gray-600 mb-1">ข้อความชมเชย (คะแนนมากกว่า 75%)</label>
+                         <input type="text" id="feedback-high" class="w-full p-2 border border-gray-300 rounded-md">
+                     </div>
                  </div>
             </div>
 
@@ -92,6 +110,10 @@
                 
                 document.getElementById('quiz-title').value = localConfig.quizTitle || 'AI Knowledge Quiz';
                 document.getElementById('quiz-subtitle').value = localConfig.quizSubtitle || 'แบบทดสอบความรู้พื้นฐานเกี่ยวกับ AI';
+                document.getElementById('summary-subtitle').value = localConfig.summarySubtitle || 'นี่คือผลการทดสอบความรู้ของคุณ';
+                document.getElementById('feedback-low').value = localConfig.feedbackLow || 'ยังมีโอกาสพัฒนาได้อีกเยอะเลย ลองทบทวนแล้วสู้ใหม่นะ!';
+                document.getElementById('feedback-mid').value = localConfig.feedbackMid || 'เยี่ยมมาก! คุณมีความเข้าใจในเรื่องนี้เป็นอย่างดี';
+                document.getElementById('feedback-high').value = localConfig.feedbackHigh || 'สุดยอด! คุณคือผู้เชี่ยวชาญตัวจริง!';
                 
                 renderQuestions();
             } catch (error) {
@@ -145,7 +167,10 @@
             const deleteQuestionBtn = document.createElement('button');
             deleteQuestionBtn.textContent = 'ลบคำถามนี้';
             deleteQuestionBtn.className = 'bg-red-100 text-red-700 px-3 py-1 rounded-md text-sm hover:bg-red-200';
-            deleteQuestionBtn.onclick = () => { if (confirm('คุณต้องการลบคำถามนี้ใช่หรือไม่?')) { localQuestions.splice(index, 1); renderQuestions(); } };
+            deleteQuestionBtn.onclick = () => {
+                localQuestions.splice(index, 1);
+                renderQuestions();
+            };
             
             actionsDiv.appendChild(addOptionBtn);
             actionsDiv.appendChild(deleteQuestionBtn);
@@ -208,6 +233,10 @@
             const updatedConfig = {
                 quizTitle: document.getElementById('quiz-title').value.trim(),
                 quizSubtitle: document.getElementById('quiz-subtitle').value.trim(),
+                summarySubtitle: document.getElementById('summary-subtitle').value.trim(),
+                feedbackLow: document.getElementById('feedback-low').value.trim(),
+                feedbackMid: document.getElementById('feedback-mid').value.trim(),
+                feedbackHigh: document.getElementById('feedback-high').value.trim(),
             };
 
             const updatedQuestions = [];
@@ -270,3 +299,4 @@
     </script>
 </body>
 </html>
+
