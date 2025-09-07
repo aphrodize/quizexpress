@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Knowledge Explorer</title>
+    <!-- Chosen Palette: Calm Focus -->
+    <!-- Application Structure Plan: แอปพลิเคชันใช้โครงสร้างแบบ 3 ขั้นตอนที่ชัดเจน: 1. ลงทะเบียน, 2. ทำแบบทดสอบ, 3. ดูสรุปผล. โครงสร้างนี้ถูกเลือกเพราะมันนำทางผู้ใช้ไปตามลำดับการใช้งานที่เป็นธรรมชาติและเข้าใจง่ายที่สุด ตั้งแต่เริ่มต้นจนจบกระบวนการ โดยแต่ละส่วนจะแสดงผลแบบเต็มหน้าจอเพื่อช่วยให้ผู้ใช้มีสมาธิจดจ่อกับสิ่งที่ทำอยู่ ณ ขณะนั้น การออกแบบนี้ช่วยลดความสับสนและสร้างประสบการณ์ที่ราบรื่นไร้รอยต่อ. -->
+    <!-- Visualization & Content Choices: 
+        - ข้อมูล: รายละเอียดผู้ใช้ -> เป้าหมาย: เก็บข้อมูลผู้ใช้ -> การแสดงผล: แบบฟอร์ม HTML/Tailwind -> การโต้ตอบ: กรอกข้อมูล, คลิกปุ่ม -> เหตุผล: เป็นวิธีมาตรฐานและมีประสิทธิภาพสูงสุดในการรับข้อมูล -> เครื่องมือ: HTML/JS.
+        - ข้อมูล: คำถามและตัวเลือก -> เป้าหมาย: ทดสอบความรู้ -> การแสดงผล: กล่องข้อความและปุ่มที่เปลี่ยนแปลงได้ -> การโต้ตอบ: คลิกปุ่มเพื่อเลือกคำตอบ -> เหตุผล: เป็นวิธีที่ชัดเจนและตรงไปตรงมาในการนำเสนอแบบทดสอบปรนัย -> เครื่องมือ: HTML/JS.
+        - ข้อมูล: เวลาจำกัดต่อข้อ -> เป้าหมาย: เพิ่มความท้าทาย -> การแสดงผล: แถบความคืบหน้าและตัวเลขจับเวลา -> การโต้ตอบ: แสดงผลอัตโนมัติ -> เหตุผล: ให้ข้อมูลเรื่องเวลาที่ชัดเจน กระตุ้นให้เกิดความตื่นตัว -> เครื่องมือ: HTML/JS/CSS.
+        - ข้อมูล: คะแนนสรุป (ถูก/ผิด) -> เป้าหมาย: สรุปผลการทดสอบ -> การแสดงผล: กราฟโดนัท -> การโต้ตอบ: เอาเมาส์ชี้เพื่อดูรายละเอียด -> เหตุผล: แสดงสัดส่วนข้อมูลได้สวยงามและเข้าใจง่าย -> เครื่องมือ: Chart.js/Canvas.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Sarabun', sans-serif; background-color: #F8F9FA; }
+        .view { display: none; }
+        .view.active { display: flex; }
+        .card { background-color: white; border-radius: 1.5rem; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.04); }
+        .chart-container { position: relative; width: 100%; max-width: 300px; margin-left: auto; margin-right: auto; height: 300px; max-height: 300px; }
+        .loader { width: 48px; height: 48px; border: 5px solid #FFF; border-bottom-color: #4F46E5; border-radius: 50%; display: inline-block; box-sizing: border-box; animation: rotation 1s linear infinite; }
+        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .option-btn { transition: all 0.2s ease-in-out; }
+        .option-btn:hover { transform: translateY(-3px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4 text-gray-800">
+    <main class="w-full max-w-3xl mx-auto">
+
+        <div id="loading-view" class="view active flex-col items-center justify-center p-8">
+            <div class="loader !border-bottom-color-[#4338CA]"></div>
+            <p class="text-gray-500 mt-4 text-lg">กำลังเตรียมแบบทดสอบ...</p>
+        </div>
+
+        <div id="registration-view" class="view-container view flex-col items-center">
+            <div class="card w-full p-8 md:p-12 text-center">
+                <h1 id="quiz-title" class="text-4xl md:text-5xl font-bold text-indigo-800">AI Knowledge Explorer</h1>
+                <p id="quiz-subtitle" class="text-gray-500 mt-3 text-lg">แบบทดสอบความรู้พื้นฐานด้านปัญญาประดิษฐ์</p>
+                <div class="mt-8 text-left">
+                     <p class="text-gray-600 mb-6 text-center">กรุณากรอกข้อมูลเพื่อเข้าสู่ระบบและเริ่มทำแบบทดสอบ</p>
+                    <form id="registration-form" class="space-y-4">
+                        <div>
+                            <label for="name" class="block text-sm font-medium text-gray-700">ชื่อ-นามสกุล</label>
+                            <input type="text" id="name" name="name" required class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
+                        </div>
+                        <div>
+                            <label for="email" class="block text-sm font-medium text-gray-700">อีเมล</label>
+                            <input type="email" id="email" name="email" required class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
+                        </div>
+                        <div>
+                            <label for="staffId" class="block text-sm font-medium text-gray-700">รหัสพนักงาน</label>
+                            <input type="text" id="staffId" name="staffId" required class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
+                        </div>
+                        <button id="register-btn" type="submit" class="mt-6 w-full bg-indigo-600 text-white font-bold py-4 px-4 rounded-xl hover:bg-indigo-700 transition-all transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-indigo-300 flex items-center justify-center text-lg">
+                            <span id="register-btn-text">เริ่มทำแบบทดสอบ</span>
+                            <div id="register-btn-spinner" class="hidden loader !w-6 !h-6 !border-2"></div>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div id="quiz-view" class="view-container view w-full">
+             <div class="card w-full p-8 md:p-12">
+                <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-4">
+                    <div id="question-counter" class="text-lg font-semibold text-gray-700"></div>
+                    <div id="timer-text" class="text-lg font-bold text-indigo-600 bg-indigo-100 px-4 py-1 rounded-full"></div>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2.5 mb-6 overflow-hidden">
+                    <div id="timer-bar" class="bg-indigo-600 h-2.5 rounded-full transition-all duration-1000 ease-linear"></div>
+                </div>
+                <div id="question-text" class="text-2xl md:text-3xl font-medium text-gray-800 mb-8 min-h-[120px] flex items-center"></div>
+                <div id="options-container" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+            </div>
+        </div>
+
+        <div id="summary-view" class="view-container view flex-col items-center">
+            <div class="card w-full p-8 md:p-12 text-center">
+                <h1 class="text-4xl md:text-5xl font-bold text-indigo-800 mb-4">สรุปผลการทดสอบ</h1>
+                <p id="summary-subtitle-text" class="text-gray-600 text-lg mb-6">นี่คือผลการทดสอบความรู้ด้าน AI ของคุณ</p>
+                <div class="chart-container my-8">
+                    <canvas id="summary-chart"></canvas>
+                </div>
+                <p id="score-text" class="text-3xl font-bold text-gray-800 mb-2"></p>
+                <p id="summary-text" class="text-xl text-gray-500 mb-10"></p>
+                <button onclick="restartQuiz()" class="w-full md:w-auto bg-indigo-600 text-white font-bold py-4 px-10 rounded-xl hover:bg-indigo-700 transition-all transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-indigo-300 text-lg">
+                    ทำแบบทดสอบอีกครั้ง
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx45oaqaeLQ4vCgeD10AQl8BjQ2u_JXksdpGj3crajHFqtrlw7sff5ggZG7_dYXlSJaMg/exec";
+        let allQuestions = [];
+        const state = {
+            config: {},
+            user: { name: null, email: null, staffId: null, recordId: null },
+            quiz: {
+                questions: [],
+                currentQuestionIndex: 0,
+                score: 0,
+                timer: null,
+                timeLeft: 15,
+                timeLimit: 15,
+            },
+            summaryChart: null
+        };
+
+        document.addEventListener('DOMContentLoaded', loadInitialData);
+
+        async function loadInitialData() {
+            switchView('loading');
+            try {
+                const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getQuizData`);
+                if (!response.ok) throw new Error(`Server error: ${response.status}`);
+                const result = await response.json();
+                if (result.error) throw new Error(result.message);
+                
+                allQuestions = result.questions || [];
+                state.config = result.config || {};
+
+                document.getElementById('quiz-title').textContent = state.config.quizTitle || 'AI Knowledge Explorer';
+                document.getElementById('quiz-subtitle').textContent = state.config.quizSubtitle || 'แบบทดสอบความรู้พื้นฐานด้านปัญญาประดิษฐ์';
+                document.title = state.config.quizTitle || 'AI Knowledge Explorer';
+                
+                switchView('registration');
+            } catch (error) {
+                console.error("Initial data load failed:", error);
+                const loadingView = document.getElementById('loading-view');
+                loadingView.innerHTML = `<p class="text-red-600 text-center p-8 bg-red-50 rounded-xl">เกิดข้อผิดพลาดในการโหลดข้อมูล: ${error.message}<br>โปรดลองรีเฟรชหน้าอีกครั้ง</p>`;
+            }
+        }
+
+        function switchView(viewId) {
+            document.querySelectorAll('.view-container').forEach(v => v.classList.remove('active'));
+            const loadingView = document.getElementById('loading-view');
+            const targetView = document.getElementById(`${viewId}-view`);
+            if (viewId === 'loading') {
+                loadingView.classList.add('active');
+            } else {
+                loadingView.classList.remove('active');
+                if(targetView) targetView.classList.add('active');
+            }
+        }
+
+        async function sendDataToProxy(type, data) {
+            try {
+                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'cors',
+                    cache: 'no-cache',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ type, data })
+                });
+                if (!response.ok) {
+                    const errorBody = await response.text();
+                    throw new Error(`Proxy error ${response.status}: ${errorBody}`);
+                }
+                return await response.json();
+            } catch (error) {
+                console.error('Failed to send data via proxy:', error);
+                alert(`เกิดข้อผิดพลาดในการเชื่อมต่อ: ${error.message}`);
+                return null;
+            }
+        }
+
+        document.getElementById('registration-form').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const form = event.target;
+            const name = form.elements.name.value.trim();
+            const email = form.elements.email.value.trim();
+            const staffId = form.elements.staffId.value.trim();
+
+            if (!name || !email || !staffId) {
+                alert('กรุณากรอกข้อมูลให้ครบทุกช่อง');
+                return;
+            }
+            
+            state.user = { name, email, staffId, recordId: null };
+
+            const registerBtn = document.getElementById('register-btn');
+            const btnText = document.getElementById('register-btn-text');
+            const btnSpinner = document.getElementById('register-btn-spinner');
+
+            registerBtn.disabled = true;
+            btnText.classList.add('hidden');
+            btnSpinner.classList.remove('hidden');
+
+            const result = await sendDataToProxy('registration', { name, email, staffId });
+            
+            registerBtn.disabled = false;
+            btnText.classList.remove('hidden');
+            btnSpinner.classList.add('hidden');
+            
+            if (result && result.status === "success" && result.recordId) {
+                state.user.recordId = result.recordId;
+                startQuiz(50);
+            } else {
+                 const errorMessage = result && result.message ? result.message : "An unknown error occurred.";
+                 alert('ไม่สามารถบันทึกข้อมูลการลงทะเบียนได้: ' + errorMessage);
+                 console.error("An error occurred during registration.", result);
+            }
+        });
+        
+        function startQuiz(questionCount) {
+            state.quiz.score = 0;
+            state.quiz.currentQuestionIndex = 0;
+            const questionPool = allQuestions.length > 0 ? allQuestions : [{q: 'Error: Could not load questions.', o: ['OK'], a: 0}];
+            const count = Math.min(questionCount, questionPool.length);
+            state.quiz.questions = shuffle([...questionPool]).slice(0, count);
+            
+            switchView('quiz');
+            showQuestion();
+        }
+
+        function showQuestion() {
+            if (state.quiz.currentQuestionIndex >= state.quiz.questions.length) {
+                showSummary();
+                return;
+            }
+            clearInterval(state.quiz.timer);
+            const question = state.quiz.questions[state.quiz.currentQuestionIndex];
+            document.getElementById('question-counter').textContent = `คำถามข้อที่ ${state.quiz.currentQuestionIndex + 1} จาก ${state.quiz.questions.length}`;
+            document.getElementById('question-text').textContent = question.q;
+            
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+            
+            question.o.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.textContent = option;
+                button.className = 'option-btn w-full text-left p-4 bg-white border-2 border-gray-300 rounded-xl hover:border-indigo-500 hover:bg-indigo-50 focus:outline-none';
+                button.onclick = () => selectOption(button, index, question.a);
+                optionsContainer.appendChild(button);
+            });
+            startTimer();
+        }
+
+        function selectOption(selectedButton, selectedIndex, correctIndex) {
+            clearInterval(state.quiz.timer);
+            if (selectedIndex === correctIndex) {
+                state.quiz.score++;
+            }
+            selectedButton.blur();
+            
+            const allOptionButtons = document.querySelectorAll('.option-btn');
+            allOptionButtons.forEach(btn => btn.disabled = true);
+
+            setTimeout(() => {
+                state.quiz.currentQuestionIndex++;
+                showQuestion();
+            }, 150);
+        }
+
+        function startTimer() {
+            state.quiz.timeLeft = state.quiz.timeLimit;
+            const timerBar = document.getElementById('timer-bar');
+            const timerText = document.getElementById('timer-text');
+            
+            const updateTimer = () => {
+                timerText.textContent = `เวลาที่เหลือ: ${state.quiz.timeLeft} วินาที`;
+                timerBar.style.width = `${(state.quiz.timeLeft / state.quiz.timeLimit) * 100}%`;
+                if (state.quiz.timeLeft <= 5) {
+                    timerBar.classList.remove('bg-indigo-600');
+                    timerBar.classList.add('bg-red-500');
+                } else {
+                     timerBar.classList.remove('bg-red-500');
+                    timerBar.classList.add('bg-indigo-600');
+                }
+            };
+            
+            updateTimer();
+            state.quiz.timer = setInterval(() => {
+                state.quiz.timeLeft--;
+                updateTimer();
+                if (state.quiz.timeLeft <= 0) {
+                    clearInterval(state.quiz.timer);
+                    timeUp();
+                }
+            }, 1000);
+        }
+
+        function timeUp() {
+            state.quiz.currentQuestionIndex++;
+            showQuestion();
+        }
+
+        async function showSummary() {
+            switchView('summary');
+            const totalQuestions = state.quiz.questions.length;
+            const percentage = totalQuestions > 0 ? Math.round((state.quiz.score / totalQuestions) * 100) : 0;
+
+            document.getElementById('summary-subtitle-text').textContent = state.config.summarySubtitle || 'นี่คือผลการทดสอบความรู้ของคุณ';
+            
+            document.getElementById('score-text').textContent = `คะแนนของคุณ: ${state.quiz.score} / ${totalQuestions} (${percentage}%)`;
+            
+            let summaryMsg = '';
+            if (percentage < 50) {
+                summaryMsg = state.config.feedbackLow || 'ยังมีโอกาสพัฒนาได้อีกเยอะเลย ลองทบทวนแล้วสู้ใหม่นะ!';
+            } else if (percentage <= 75) {
+                summaryMsg = state.config.feedbackMid || 'เยี่ยมมาก! คุณมีความเข้าใจในเรื่องนี้เป็นอย่างดี';
+            } else {
+                summaryMsg = state.config.feedbackHigh || 'สุดยอด! คุณคือผู้เชี่ยวชาญตัวจริง!';
+            }
+            document.getElementById('summary-text').textContent = summaryMsg;
+
+            if (state.user.recordId) {
+                await sendDataToProxy('scoreUpdate', { recordId: state.user.recordId, score: percentage });
+            }
+
+            const ctx = document.getElementById('summary-chart').getContext('2d');
+            if(state.summaryChart) state.summaryChart.destroy();
+            state.summaryChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['ตอบถูก', 'ตอบผิด'],
+                    datasets: [{
+                        data: [state.quiz.score, totalQuestions - state.quiz.score],
+                        backgroundColor: ['#4F46E5', '#EF4444'],
+                        borderColor: '#FFFFFF',
+                        borderWidth: 5,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '75%',
+                    plugins: { 
+                        legend: { display: true, position: 'bottom', labels: { font: { size: 14, family: "'Sarabun', sans-serif" } } },
+                        tooltip: { bodyFont: { size: 14, family: "'Sarabun', sans-serif" }, titleFont: { size: 14, family: "'Sarabun', sans-serif" } }
+                    }
+                }
+            });
+        }
+        
+        function restartQuiz() { window.location.reload(); }
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+    </script>
+</body>
+</html>
+
