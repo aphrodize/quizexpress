@@ -4,15 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Knowledge Explorer</title>
-    <!-- Chosen Palette: Calm Focus -->
-    <!-- Application Structure Plan: แอปพลิเคชันใช้โครงสร้างแบบ 3 ขั้นตอนที่ชัดเจน: 1. ลงทะเบียน, 2. ทำแบบทดสอบ, 3. ดูสรุปผล. โครงสร้างนี้ถูกเลือกเพราะมันนำทางผู้ใช้ไปตามลำดับการใช้งานที่เป็นธรรมชาติและเข้าใจง่ายที่สุด ตั้งแต่เริ่มต้นจนจบกระบวนการ โดยแต่ละส่วนจะแสดงผลแบบเต็มหน้าจอเพื่อช่วยให้ผู้ใช้มีสมาธิจดจ่อกับสิ่งที่ทำอยู่ ณ ขณะนั้น การออกแบบนี้ช่วยลดความสับสนและสร้างประสบการณ์ที่ราบรื่นไร้รอยต่อ. -->
-    <!-- Visualization & Content Choices: 
-        - ข้อมูล: รายละเอียดผู้ใช้ -> เป้าหมาย: เก็บข้อมูลผู้ใช้ -> การแสดงผล: แบบฟอร์ม HTML/Tailwind -> การโต้ตอบ: กรอกข้อมูล, คลิกปุ่ม -> เหตุผล: เป็นวิธีมาตรฐานและมีประสิทธิภาพสูงสุดในการรับข้อมูล -> เครื่องมือ: HTML/JS.
-        - ข้อมูล: คำถามและตัวเลือก -> เป้าหมาย: ทดสอบความรู้ -> การแสดงผล: กล่องข้อความและปุ่มที่เปลี่ยนแปลงได้ -> การโต้ตอบ: คลิกปุ่มเพื่อเลือกคำตอบ -> เหตุผล: เป็นวิธีที่ชัดเจนและตรงไปตรงมาในการนำเสนอแบบทดสอบปรนัย -> เครื่องมือ: HTML/JS.
-        - ข้อมูล: เวลาจำกัดต่อข้อ -> เป้าหมาย: เพิ่มความท้าทาย -> การแสดงผล: แถบความคืบหน้าและตัวเลขจับเวลา -> การโต้ตอบ: แสดงผลอัตโนมัติ -> เหตุผล: ให้ข้อมูลเรื่องเวลาที่ชัดเจน กระตุ้นให้เกิดความตื่นตัว -> เครื่องมือ: HTML/JS/CSS.
-        - ข้อมูล: คะแนนสรุป (ถูก/ผิด) -> เป้าหมาย: สรุปผลการทดสอบ -> การแสดงผล: กราฟโดนัท -> การโต้ตอบ: เอาเมาส์ชี้เพื่อดูรายละเอียด -> เหตุผล: แสดงสัดส่วนข้อมูลได้สวยงามและเข้าใจง่าย -> เครื่องมือ: Chart.js/Canvas.
-    -->
-    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -55,6 +46,12 @@
                         <div>
                             <label for="staffId" class="block text-sm font-medium text-gray-700">รหัสพนักงาน</label>
                             <input type="text" id="staffId" name="staffId" required class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
+                        </div>
+                         <div>
+                            <label for="trainingDate" class="block text-sm font-medium text-gray-700">เลือกวันอบรม</label>
+                            <select id="trainingDate" name="trainingDate" required class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
+                                <option value="" disabled selected>กรุณารอสักครู่...</option>
+                            </select>
                         </div>
                         <button id="register-btn" type="submit" class="mt-6 w-full bg-indigo-600 text-white font-bold py-4 px-4 rounded-xl hover:bg-indigo-700 transition-all transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-indigo-300 flex items-center justify-center text-lg">
                             <span id="register-btn-text">เริ่มทำแบบทดสอบ</span>
@@ -128,6 +125,21 @@
                 document.getElementById('quiz-title').textContent = state.config.quizTitle || 'AI Knowledge Explorer';
                 document.getElementById('quiz-subtitle').textContent = state.config.quizSubtitle || 'แบบทดสอบความรู้พื้นฐานด้านปัญญาประดิษฐ์';
                 document.title = state.config.quizTitle || 'AI Knowledge Explorer';
+
+                const trainingDateSelect = document.getElementById('trainingDate');
+                trainingDateSelect.innerHTML = '<option value="" disabled selected>กรุณาเลือกวันอบรม</option>';
+                if (result.trainingDates && result.trainingDates.length > 0) {
+                    result.trainingDates.forEach(d => {
+                        const option = document.createElement('option');
+                        option.value = d.date;
+                        // option.textContent = d.display; // นี่คือบรรทัดเดิมที่แสดง "(ว่าง x คน)"
+                        option.textContent = d.display.split('(')[0].trim(); // ใช้บรรทัดนี้แทนเพื่อซ่อน
+                        trainingDateSelect.appendChild(option);
+                    });
+                } else {
+                    trainingDateSelect.innerHTML = '<option value="" disabled selected>ไม่มีรอบอบรมที่เปิดรับสมัคร</option>';
+                    document.getElementById('register-btn').disabled = true;
+                }
                 
                 switchView('registration');
             } catch (error) {
@@ -143,6 +155,7 @@
             const targetView = document.getElementById(`${viewId}-view`);
             if (viewId === 'loading') {
                 loadingView.classList.add('active');
+                document.querySelectorAll('.view-container').forEach(v => v.classList.remove('active'));
             } else {
                 loadingView.classList.remove('active');
                 if(targetView) targetView.classList.add('active');
@@ -176,9 +189,10 @@
             const name = form.elements.name.value.trim();
             const email = form.elements.email.value.trim();
             const staffId = form.elements.staffId.value.trim();
+            const trainingDate = form.elements.trainingDate.value;
 
-            if (!name || !email || !staffId) {
-                alert('กรุณากรอกข้อมูลให้ครบทุกช่อง');
+            if (!name || !email || !staffId || !trainingDate) {
+                alert('กรุณากรอกข้อมูลและเลือกวันอบรมให้ครบถ้วน');
                 return;
             }
             
@@ -192,7 +206,7 @@
             btnText.classList.add('hidden');
             btnSpinner.classList.remove('hidden');
 
-            const result = await sendDataToProxy('registration', { name, email, staffId });
+            const result = await sendDataToProxy('registration', { name, email, staffId, trainingDate });
             
             registerBtn.disabled = false;
             btnText.classList.remove('hidden');
@@ -200,7 +214,7 @@
             
             if (result && result.status === "success" && result.recordId) {
                 state.user.recordId = result.recordId;
-                startQuiz(50);
+                startQuiz();
             } else {
                  const errorMessage = result && result.message ? result.message : "An unknown error occurred.";
                  alert('ไม่สามารถบันทึกข้อมูลการลงทะเบียนได้: ' + errorMessage);
@@ -208,10 +222,11 @@
             }
         });
         
-        function startQuiz(questionCount) {
+        function startQuiz() {
             state.quiz.score = 0;
             state.quiz.currentQuestionIndex = 0;
             const questionPool = allQuestions.length > 0 ? allQuestions : [{q: 'Error: Could not load questions.', o: ['OK'], a: 0}];
+            const questionCount = parseInt(state.config.questionCount, 10) || 20;
             const count = Math.min(questionCount, questionPool.length);
             state.quiz.questions = shuffle([...questionPool]).slice(0, count);
             
@@ -235,7 +250,7 @@
             question.o.forEach((option, index) => {
                 const button = document.createElement('button');
                 button.textContent = option;
-                button.className = 'option-btn w-full text-left p-4 bg-white border-2 border-gray-300 rounded-xl focus:outline-none';
+                button.className = 'option-btn w-full text-left p-4 bg-white border-2 border-gray-200 rounded-xl hover:bg-gray-100 focus:outline-none transition';
                 button.onclick = () => selectOption(button, index, question.a);
                 optionsContainer.appendChild(button);
             });
@@ -248,12 +263,11 @@
                 state.quiz.score++;
             }
 
-            const allOptionButtons = document.querySelectorAll('.option-btn');
-            allOptionButtons.forEach(btn => {
+            document.querySelectorAll('.option-btn').forEach(btn => {
                 btn.disabled = true;
             });
 
-            selectedButton.classList.remove('bg-white', 'border-gray-300');
+            selectedButton.classList.remove('bg-white', 'border-gray-200', 'hover:bg-gray-100');
             selectedButton.classList.add('bg-indigo-600', 'text-white', 'border-transparent');
             selectedButton.blur();
 
@@ -264,6 +278,7 @@
         }
 
         function startTimer() {
+            state.quiz.timeLimit = parseInt(state.config.timePerQuestion, 10) || 15;
             state.quiz.timeLeft = state.quiz.timeLimit;
             const timerBar = document.getElementById('timer-bar');
             const timerText = document.getElementById('timer-text');
@@ -356,4 +371,5 @@
     </script>
 </body>
 </html>
+
 
