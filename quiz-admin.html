@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบจัดการแบบทดสอบ</title>
+    <title>ระบบจัดการแบบทดสอบ (Admin)</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body { font-family: 'Sarabun', sans-serif; }
         .loader {
             border: 4px solid #f3f3f3;
             border-top: 4px solid #3498db;
@@ -27,7 +27,7 @@
     <div class="container mx-auto p-4 md:p-8">
         <div class="bg-white rounded-2xl shadow-lg p-8 mb-8">
             <h1 class="text-3xl font-bold text-gray-800">ระบบจัดการแบบทดสอบ</h1>
-            <p class="text-gray-500 mt-2">ตั้งค่าหัวข้อ, คำอธิบาย, และคลังคำถามสำหรับแบบทดสอบ</p>
+            <p class="text-gray-500 mt-2">ตั้งค่าทั่วไปและจัดการวันอบรมสำหรับแบบทดสอบ</p>
         </div>
         
         <div id="loader" class="flex justify-center items-center py-16">
@@ -37,51 +37,64 @@
         <div id="admin-content" class="hidden">
             <!-- Config Section -->
             <div class="bg-white rounded-xl shadow-md p-6 border border-gray-200 mb-8">
-                 <h2 class="text-2xl font-bold text-gray-700 mb-4">การตั้งค่าแบบทดสอบ</h2>
-                 <div class="space-y-4">
+                 <h2 class="text-2xl font-bold text-gray-700 mb-6">การตั้งค่าทั่วไป</h2>
+                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                      <div>
                          <label for="quiz-title" class="block text-sm font-bold text-gray-600 mb-1">ชื่อแบบทดสอบ (Title)</label>
-                         <input type="text" id="quiz-title" class="w-full p-2 border border-gray-300 rounded-md">
+                         <input type="text" id="quiz-title" class="config-input w-full p-2 border border-gray-300 rounded-md">
                      </div>
                      <div>
                          <label for="quiz-subtitle" class="block text-sm font-bold text-gray-600 mb-1">คำอธิบาย (Subtitle)</label>
-                         <input type="text" id="quiz-subtitle" class="w-full p-2 border border-gray-300 rounded-md">
+                         <input type="text" id="quiz-subtitle" class="config-input w-full p-2 border border-gray-300 rounded-md">
                      </div>
-                     <hr class="my-6 border-t border-gray-200">
-                     <h3 class="text-xl font-bold text-gray-700 pt-2">ข้อความหน้าสรุปผล</h3>
+                      <div>
+                         <label for="question-count" class="block text-sm font-bold text-gray-600 mb-1">จำนวนคำถามที่จะสุ่ม (เช่น 20)</label>
+                         <input type="number" id="question-count" class="config-input w-full p-2 border border-gray-300 rounded-md">
+                     </div>
                      <div>
-                         <label for="summary-subtitle" class="block text-sm font-bold text-gray-600 mb-1">คำอธิบายหน้าสรุปผล (อยู่ใต้หัวข้อหลัก)</label>
-                         <input type="text" id="summary-subtitle" class="w-full p-2 border border-gray-300 rounded-md">
+                         <label for="time-per-question" class="block text-sm font-bold text-gray-600 mb-1">เวลาต่อข้อ (วินาที)</label>
+                         <input type="number" id="time-per-question" class="config-input w-full p-2 border border-gray-300 rounded-md">
+                     </div>
+                 </div>
+                 <hr class="my-8 border-t border-gray-200">
+                 <h3 class="text-xl font-bold text-gray-700">ข้อความหน้าสรุปผล</h3>
+                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                     <div>
+                         <label for="summary-subtitle" class="block text-sm font-bold text-gray-600 mb-1">คำอธิบายหน้าสรุปผล</label>
+                         <input type="text" id="summary-subtitle" class="config-input w-full p-2 border border-gray-300 rounded-md">
                      </div>
                       <div>
-                         <label for="feedback-low" class="block text-sm font-bold text-gray-600 mb-1">ข้อความให้กำลังใจ (คะแนนน้อยกว่า 50%)</label>
-                         <input type="text" id="feedback-low" class="w-full p-2 border border-gray-300 rounded-md">
+                         <label for="feedback-low" class="block text-sm font-bold text-gray-600 mb-1">ข้อความคะแนนน้อย (น้อยกว่า 50%)</label>
+                         <input type="text" id="feedback-low" class="config-input w-full p-2 border border-gray-300 rounded-md">
                      </div>
                       <div>
-                         <label for="feedback-mid" class="block text-sm font-bold text-gray-600 mb-1">ข้อความชมเชย (คะแนน 50% - 75%)</label>
-                         <input type="text" id="feedback-mid" class="w-full p-2 border border-gray-300 rounded-md">
+                         <label for="feedback-mid" class="block text-sm font-bold text-gray-600 mb-1">ข้อความคะแนนปานกลาง (50% - 75%)</label>
+                         <input type="text" id="feedback-mid" class="config-input w-full p-2 border border-gray-300 rounded-md">
                      </div>
                       <div>
-                         <label for="feedback-high" class="block text-sm font-bold text-gray-600 mb-1">ข้อความชมเชย (คะแนนมากกว่า 75%)</label>
-                         <input type="text" id="feedback-high" class="w-full p-2 border border-gray-300 rounded-md">
+                         <label for="feedback-high" class="block text-sm font-bold text-gray-600 mb-1">ข้อความคะแนนสูง (มากกว่า 75%)</label>
+                         <input type="text" id="feedback-high" class="config-input w-full p-2 border border-gray-300 rounded-md">
                      </div>
                  </div>
             </div>
-
-            <!-- Questions Section -->
-            <div id="question-list" class="space-y-6">
-                <!-- Question cards will be injected here -->
+            
+            <!-- Training Dates Section -->
+            <div class="bg-white rounded-xl shadow-md p-6 border border-gray-200 mb-8">
+                <h2 class="text-2xl font-bold text-gray-700 mb-4">จัดการวันอบรม</h2>
+                <div id="training-dates-list" class="space-y-3">
+                    <!-- Date rows will be injected here -->
+                </div>
+                <button id="add-date-btn" class="mt-4 bg-blue-100 text-blue-800 font-semibold py-2 px-4 rounded-lg hover:bg-blue-200 transition">
+                    เพิ่มวันอบรมใหม่
+                </button>
             </div>
 
             <div class="mt-8 flex flex-col md:flex-row gap-4">
-                <button id="add-question-btn" class="w-full md:w-auto bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition">
-                    เพิ่มคำถามใหม่
-                </button>
                 <button id="save-changes-btn" class="w-full md:w-auto bg-green-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-700 transition flex items-center justify-center">
                     <span id="save-btn-text">บันทึกการเปลี่ยนแปลงทั้งหมด</span>
                     <div id="save-btn-spinner" class="hidden w-5 h-5 border-2 border-white border-solid border-t-transparent rounded-full animate-spin ml-2"></div>
                 </button>
-                <a href="ai_knowledge_explorer.html" target="_blank" class="w-full md:w-auto text-center bg-purple-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-purple-700 transition">
+                <a href="YOUR_QUIZ_FORM_URL_HERE" target="_blank" class="w-full md:w-auto text-center bg-purple-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-purple-700 transition">
                     ไปที่หน้าทำแบบทดสอบ
                 </a>
             </div>
@@ -90,12 +103,10 @@
 
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx45oaqaeLQ4vCgeD10AQl8BjQ2u_JXksdpGj3crajHFqtrlw7sff5ggZG7_dYXlSJaMg/exec";
-        let localQuestions = [];
-        let localConfig = {};
-
+        
         document.addEventListener('DOMContentLoaded', () => {
             loadAdminData();
-            document.getElementById('add-question-btn').addEventListener('click', addQuestionCard);
+            document.getElementById('add-date-btn').addEventListener('click', addDateRow);
             document.getElementById('save-changes-btn').addEventListener('click', saveAllChanges);
         });
 
@@ -105,17 +116,19 @@
                 const result = await response.json();
                 if (result.error) throw new Error(result.message);
                 
-                localConfig = result.config || {};
-                localQuestions = result.questions || [];
-                
-                document.getElementById('quiz-title').value = localConfig.quizTitle || 'AI Knowledge Quiz';
-                document.getElementById('quiz-subtitle').value = localConfig.quizSubtitle || 'แบบทดสอบความรู้พื้นฐานเกี่ยวกับ AI';
-                document.getElementById('summary-subtitle').value = localConfig.summarySubtitle || 'นี่คือผลการทดสอบความรู้ของคุณ';
-                document.getElementById('feedback-low').value = localConfig.feedbackLow || 'ยังมีโอกาสพัฒนาได้อีกเยอะเลย ลองทบทวนแล้วสู้ใหม่นะ!';
-                document.getElementById('feedback-mid').value = localConfig.feedbackMid || 'เยี่ยมมาก! คุณมีความเข้าใจในเรื่องนี้เป็นอย่างดี';
-                document.getElementById('feedback-high').value = localConfig.feedbackHigh || 'สุดยอด! คุณคือผู้เชี่ยวชาญตัวจริง!';
-                
-                renderQuestions();
+                // Populate Config
+                document.getElementById('quiz-title').value = result.config.quizTitle || '';
+                document.getElementById('quiz-subtitle').value = result.config.quizSubtitle || '';
+                document.getElementById('question-count').value = result.config.questionCount || '20';
+                document.getElementById('time-per-question').value = result.config.timePerQuestion || '15';
+                document.getElementById('summary-subtitle').value = result.config.summarySubtitle || '';
+                document.getElementById('feedback-low').value = result.config.feedbackLow || '';
+                document.getElementById('feedback-mid').value = result.config.feedbackMid || '';
+                document.getElementById('feedback-high').value = result.config.feedbackHigh || '';
+
+                // Populate Training Dates
+                renderTrainingDates(result.trainingDates || []);
+
             } catch (error) {
                 alert(`เกิดข้อผิดพลาดในการโหลดข้อมูล: ${error.message}`);
             } finally {
@@ -124,145 +137,68 @@
             }
         }
 
-        function renderQuestions() {
-            const list = document.getElementById('question-list');
+        function renderTrainingDates(dates) {
+            const list = document.getElementById('training-dates-list');
             list.innerHTML = '';
-            localQuestions.forEach((q, index) => {
-                list.appendChild(createQuestionCard(q, index));
-            });
+            if (dates.length > 0) {
+                dates.forEach(dateInfo => {
+                    list.appendChild(createDateRow(dateInfo.date, dateInfo.limit));
+                });
+            }
         }
+        
+        function createDateRow(date = '', limit = '') {
+            const div = document.createElement('div');
+            div.className = 'date-row flex items-center gap-3';
 
-        function createQuestionCard(questionData, index) {
-            const card = document.createElement('div');
-            card.className = 'bg-white rounded-xl shadow-md p-6 border border-gray-200';
-            card.dataset.index = index;
+            const dateInput = document.createElement('input');
+            dateInput.type = 'date';
+            dateInput.value = date;
+            dateInput.className = 'date-input p-2 border border-gray-300 rounded-md w-full';
 
-            const questionLabel = document.createElement('label');
-            questionLabel.textContent = `คำถามข้อที่ ${index + 1}`;
-            questionLabel.className = 'block text-sm font-bold text-gray-600 mb-2';
-            const questionInput = document.createElement('textarea');
-            questionInput.className = 'question-input w-full p-2 border border-gray-300 rounded-md';
-            questionInput.rows = 2;
-            questionInput.value = questionData.q;
+            const limitInput = document.createElement('input');
+            limitInput.type = 'number';
+            limitInput.value = limit;
+            limitInput.placeholder = 'จำนวนที่รับ';
+            limitInput.className = 'limit-input p-2 border border-gray-300 rounded-md w-48';
 
-            const optionsContainer = document.createElement('div');
-            optionsContainer.className = 'options-container mt-4 space-y-2';
-            
-            const correctAnswerLabel = document.createElement('p');
-            correctAnswerLabel.textContent = 'คำตอบ (ใส่คำตอบที่ถูกต้องในช่องแรก)';
-            correctAnswerLabel.className = 'text-xs text-gray-500 mb-1';
-            optionsContainer.appendChild(correctAnswerLabel);
-
-            questionData.o.forEach((optionText, optIndex) => {
-                optionsContainer.appendChild(createOptionInput(index, optIndex, optionText));
-            });
-            
-            const actionsDiv = document.createElement('div');
-            actionsDiv.className = 'mt-4 flex flex-wrap gap-2';
-            const addOptionBtn = document.createElement('button');
-            addOptionBtn.textContent = 'เพิ่มตัวเลือก';
-            addOptionBtn.className = 'bg-gray-200 text-gray-700 px-3 py-1 rounded-md text-sm hover:bg-gray-300';
-            addOptionBtn.onclick = () => { localQuestions[index].o.push(''); renderQuestions(); };
-            
-            const deleteQuestionBtn = document.createElement('button');
-            deleteQuestionBtn.textContent = 'ลบคำถามนี้';
-            deleteQuestionBtn.className = 'bg-red-100 text-red-700 px-3 py-1 rounded-md text-sm hover:bg-red-200';
-            deleteQuestionBtn.onclick = () => {
-                localQuestions.splice(index, 1);
-                renderQuestions();
-            };
-            
-            actionsDiv.appendChild(addOptionBtn);
-            actionsDiv.appendChild(deleteQuestionBtn);
-
-            card.appendChild(questionLabel);
-            card.appendChild(questionInput);
-            card.appendChild(optionsContainer);
-            card.appendChild(actionsDiv);
-            
-            return card;
-        }
-
-        function createOptionInput(qIndex, optIndex, value) {
-            const wrapper = document.createElement('div');
-            wrapper.className = 'flex items-center gap-2';
-            
-            const radio = document.createElement('input');
-            radio.type = 'radio';
-            radio.name = `correct_answer_${qIndex}`;
-            radio.checked = localQuestions[qIndex].a === optIndex;
-            radio.className = 'w-5 h-5 flex-shrink-0';
-            radio.onchange = () => { 
-                const selectedOption = localQuestions[qIndex].o.splice(optIndex, 1)[0];
-                localQuestions[qIndex].o.unshift(selectedOption);
-                localQuestions[qIndex].a = 0;
-                renderQuestions();
-            };
-            
-            const textInput = document.createElement('input');
-            textInput.type = 'text';
-            textInput.value = value;
-            textInput.className = 'option-input flex-grow p-2 border border-gray-300 rounded-md';
-            textInput.placeholder = `ตัวเลือกที่ ${optIndex + 1} ${optIndex === 0 ? '(คำตอบที่ถูก)' : ''}`;
-            
             const deleteBtn = document.createElement('button');
             deleteBtn.innerHTML = '&times;';
-            deleteBtn.className = 'w-8 h-8 flex items-center justify-center bg-gray-200 rounded-full hover:bg-red-200 hover:text-red-800 font-bold flex-shrink-0';
-            deleteBtn.onclick = () => {
-                localQuestions[qIndex].o.splice(optIndex, 1);
-                if (localQuestions[qIndex].a === optIndex) localQuestions[qIndex].a = 0;
-                else if (localQuestions[qIndex].a > optIndex) localQuestions[qIndex].a--;
-                renderQuestions();
-            };
-            
-            if(optIndex === 0) radio.checked = true;
+            deleteBtn.className = 'w-9 h-9 flex items-center justify-center bg-red-100 text-red-700 rounded-full hover:bg-red-200 font-bold';
+            deleteBtn.onclick = () => div.remove();
 
-            wrapper.appendChild(radio);
-            wrapper.appendChild(textInput);
-            wrapper.appendChild(deleteBtn);
-            return wrapper;
+            div.appendChild(dateInput);
+            div.appendChild(limitInput);
+            div.appendChild(deleteBtn);
+            return div;
         }
 
-        function addQuestionCard() {
-            localQuestions.push({ q: '', o: ['', ''], a: 0 });
-            renderQuestions();
-            window.scrollTo(0, document.body.scrollHeight);
+        function addDateRow() {
+            document.getElementById('training-dates-list').appendChild(createDateRow());
         }
 
         function collectDataFromUI() {
             const updatedConfig = {
                 quizTitle: document.getElementById('quiz-title').value.trim(),
                 quizSubtitle: document.getElementById('quiz-subtitle').value.trim(),
+                questionCount: document.getElementById('question-count').value.trim(),
+                timePerQuestion: document.getElementById('time-per-question').value.trim(),
                 summarySubtitle: document.getElementById('summary-subtitle').value.trim(),
                 feedbackLow: document.getElementById('feedback-low').value.trim(),
                 feedbackMid: document.getElementById('feedback-mid').value.trim(),
                 feedbackHigh: document.getElementById('feedback-high').value.trim(),
             };
-
-            const updatedQuestions = [];
-            const cards = document.querySelectorAll('#question-list > div');
-            cards.forEach((card, qIndex) => {
-                const questionText = card.querySelector('.question-input').value.trim();
-                const optionInputs = card.querySelectorAll('.option-input');
-                
-                let correctIndex = -1;
-                const radioInputs = card.querySelectorAll('input[type="radio"]');
-                radioInputs.forEach((radio, optIndex) => {
-                    if (radio.checked) correctIndex = optIndex;
-                });
-                if(correctIndex === -1) correctIndex = 0;
-                
-                const options = Array.from(optionInputs).map(input => input.value.trim()).filter(opt => opt);
-                
-                if (questionText && options.length >= 2) {
-                    updatedQuestions.push({
-                        q: questionText,
-                        o: options,
-                        a: correctIndex
-                    });
+            
+            const updatedDates = [];
+            document.querySelectorAll('.date-row').forEach(row => {
+                const date = row.querySelector('.date-input').value;
+                const limit = row.querySelector('.limit-input').value;
+                if (date && limit) {
+                    updatedDates.push({ date, limit });
                 }
             });
-            return { config: updatedConfig, questions: updatedQuestions };
+
+            return { config: updatedConfig, trainingDates: updatedDates };
         }
 
         async function saveAllChanges() {
@@ -299,4 +235,3 @@
     </script>
 </body>
 </html>
-
