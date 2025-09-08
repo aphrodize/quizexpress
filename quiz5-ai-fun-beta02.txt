@@ -1,0 +1,242 @@
+// --- การตั้งค่า Google Sheet ---
+const SPREADSHEET_ID = "18m5iKVJeRWTR3Scaa8p3u5ik0Fp8K7QephhgNkPFYRg";
+const RESULTS_SHEET_NAME = "ชีต1";
+const QUESTIONS_SHEET_NAME = "ชีต2";
+const CONFIG_SHEET_NAME = "Config";
+const TRAINING_DATES_SHEET_NAME = "TrainingDates";
+// -------------------------
+// --- ค่าคงที่สำหรับคอลัมน์ผลคะแนน ---
+const TIMESTAMP_COL = 1, STAFF_ID_COL = 2, EMAIL_COL = 3, NAME_COL = 4, SCORE_COL = 5, RECORD_ID_COL = 6, TRAINING_DATE_COL = 7;
+// ------------------------------------
+
+function doPost(e) {
+  try {
+    const requestData = JSON.parse(e.postData.contents);
+    switch (requestData.type) {
+      case 'registration': return handleRegistration(requestData.data);
+      case 'scoreUpdate': return handleScoreUpdate(requestData.data);
+      case 'saveAdminData': return handleSaveAdminData(requestData.data);
+      default: throw new Error("Invalid POST request type.");
+    }
+  } catch (err) {
+    return createJsonResponse({ error: true, message: "POST Error: " + err.toString() });
+  }
+}
+
+function doGet(e) {
+  try {
+    const action = e.parameter.action;
+    switch (action) {
+      case 'getQuizData': return handleGetQuizData();
+      case 'getAdminData': return handleGetAdminData();
+      default: throw new Error("Invalid GET action.");
+    }
+  } catch (err) {
+    return createJsonResponse({ error: true, message: "GET Error: " + err.toString() });
+  }
+}
+
+// --- ฟังก์ชันสำหรับดึงข้อมูล ---
+function handleGetQuizData() {
+  const config = getQuizConfig();
+  const questions = getQuestions();
+  const trainingDates = getAvailableTrainingDates();
+  return createJsonResponse({ status: "success", config, questions, trainingDates });
+}
+
+function handleGetAdminData() {
+  const config = getQuizConfig();
+  const trainingDates = getTrainingDatesForAdmin();
+  return createJsonResponse({ status: "success", config, trainingDates });
+}
+
+// --- ฟังก์ชันสำหรับบันทึกข้อมูล ---
+function handleRegistration(data) {
+  const { name, email, staffId, trainingDate } = data;
+  if (!trainingDate) {
+    return createJsonResponse({ error: true, message: "กรุณาเลือกวันอบรม" });
+  }
+  const availableDates = getAvailableTrainingDates();
+  const isDateAvailable = availableDates.some(d => d.date === trainingDate);
+  if (!isDateAvailable) {
+    return createJsonResponse({ error: true, message: "ขออภัย วันที่ท่านเลือกเต็มแล้ว กรุณารีเฟรชหน้าแล้วลองใหม่อีกครั้ง" });
+  }
+  const sheet = getSheet(RESULTS_SHEET_NAME);
+  const newRecordId = Utilities.getUuid();
+  sheet.appendRow([new Date(), staffId, email, name, "", newRecordId, trainingDate]);
+  return createJsonResponse({ status: "success", recordId: newRecordId });
+}
+
+function handleScoreUpdate(data) {
+  const sheet = getSheet(RESULTS_SHEET_NAME);
+  const { recordId, score } = data;
+  const dataRange = sheet.getDataRange();
+  const values = dataRange.getValues();
+  for (let i = 1; i < values.length; i++) {
+    if (values[i][RECORD_ID_COL - 1] == recordId) {
+      sheet.getRange(i + 1, SCORE_COL).setValue(score);
+      return createJsonResponse({ status: "success", message: "Score updated." });
+    }
+  }
+  return createJsonResponse({ error: true, message: "RecordID not found." });
+}
+
+function handleSaveAdminData(data) {
+  const { config, trainingDates } = data;
+  saveQuizConfig(config);
+  if (trainingDates) {
+    saveTrainingDates(trainingDates);
+  }
+  return createJsonResponse({ status: "success", message: "Admin data saved successfully." });
+}
+
+// --- ฟังก์ชันจัดการ Config ---
+function getQuizConfig() {
+  const sheet = getSheet(CONFIG_SHEET_NAME);
+  const range = sheet.getDataRange();
+  const values = range.getValues();
+  const config = {};
+  for (let i = 0; i < values.length; i++) { // Start from row 0 (index 0)
+    if (values[i][0]) {
+      config[values[i][0]] = values[i][1];
+    }
+  }
+  return config;
+}
+
+function saveQuizConfig(config) {
+  const sheet = getSheet(CONFIG_SHEET_NAME);
+  const configMap = {
+    "quizTitle": 1,
+    "quizSubtitle": 2,
+    "questionCount": 3,
+    "timePerQuestion": 4,
+    "summarySubtitle": 5,
+    "feedbackLow": 6,
+    "feedbackMid": 7,
+    "feedbackHigh": 8
+  };
+  const allConfigKeys = sheet.getRange("A1:A").getValues().flat();
+  for (const key in config) {
+    const rowIndex = allConfigKeys.indexOf(key);
+    if (rowIndex !== -1) {
+      sheet.getRange(rowIndex + 1, 2).setValue(config[key]);
+    }
+  }
+}
+
+// --- ฟังก์ชันจัดการคำถาม (ยังคงอยู่เพื่อใช้กับหน้าฟอร์ม) ---
+function getQuestions() {
+  const sheet = getSheet(QUESTIONS_SHEET_NAME);
+  const values = sheet.getDataRange().getValues();
+  const questions = [];
+  for (let i = 1; i < values.length; i++) {
+    const row = values[i];
+    const questionText = row[0];
+    if (!questionText) continue;
+    const correctAnswer = row[1];
+    const options = [correctAnswer];
+    for (let j = 2; j < row.length; j++) if (row[j]) options.push(row[j]);
+    const shuffledOptions = shuffleArray([...options]);
+    questions.push({ q: questionText, o: shuffledOptions, a: shuffledOptions.indexOf(correctAnswer) });
+  }
+  return questions;
+}
+
+// --- ฟังก์ชันจัดการวันอบรม ---
+function getAvailableTrainingDates() {
+  const datesSheet = getSheet(TRAINING_DATES_SHEET_NAME);
+  const resultsSheet = getSheet(RESULTS_SHEET_NAME);
+  if (datesSheet.getLastRow() < 2) return [];
+  const trainingDatesData = datesSheet.getRange(2, 1, datesSheet.getLastRow() - 1, 2).getValues();
+  const registrations = resultsSheet.getLastRow() > 1 ? resultsSheet.getRange(2, TRAINING_DATE_COL, resultsSheet.getLastRow() - 1, 1).getValues() : [];
+  const registrationCounts = {};
+  registrations.forEach(row => {
+    if (row[0]) {
+      const date = Utilities.formatDate(new Date(row[0]), Session.getScriptTimeZone(), "yyyy-MM-dd");
+      registrationCounts[date] = (registrationCounts[date] || 0) + 1;
+    }
+  });
+  
+  const availableDates = [];
+  trainingDatesData.forEach(row => {
+    if (!(row[0] instanceof Date)) return;
+    const dateValue = row[0];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (dateValue < today) return;
+
+    const dateStr = Utilities.formatDate(dateValue, Session.getScriptTimeZone(), "yyyy-MM-dd");
+    const limit = parseInt(row[1], 10);
+
+    if (isNaN(limit)) return;
+
+    const count = registrationCounts[dateStr] || 0;
+    const remaining = limit - count;
+
+    if (remaining > 0) {
+      const displayDate = dateValue.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
+      availableDates.push({
+        date: dateStr,
+        display: `${displayDate} (ว่าง ${remaining} คน)`
+      });
+      // *** FIXED ***: ลบ "return availableDates;" ออกจากตรงนี้
+    }
+  }); // <-- จบ forEach
+
+  return availableDates; // <-- *** FIXED ***: ย้ายมาไว้ตรงนี้
+}
+
+function getTrainingDatesForAdmin() {
+  const sheet = getSheet(TRAINING_DATES_SHEET_NAME);
+  if (sheet.getLastRow() < 2) return [];
+  const values = sheet.getRange(2, 1, sheet.getLastRow() - 1, 2).getValues();
+  const dates = values.map(row => {
+    if (!row[0] || !(row[0] instanceof Date)) return null;
+    
+    // Timezone Correction: Format the date within the script's timezone
+    const dateStr = Utilities.formatDate(row[0], Session.getScriptTimeZone(), "yyyy-MM-dd");
+    
+    return {
+      date: dateStr,
+      limit: row[1] || ''
+    };
+  }).filter(Boolean);
+  return dates;
+}
+
+// *** FIXED ***: ลบฟังก์ชันที่ประกาศซ้ำ (ที่ไม่สมบูรณ์) ออกไปแล้ว เหลือแค่ตัวที่ถูกต้อง
+function saveTrainingDates(dates) {
+  const sheet = getSheet(TRAINING_DATES_SHEET_NAME);
+  if (sheet.getLastRow() > 1) {
+    sheet.getRange(2, 1, sheet.getLastRow() - 1, 2).clearContent();
+  }
+  const filteredDates = dates.filter(d => d.date && d.limit);
+  if (filteredDates.length > 0) {
+    const rows = filteredDates.map(d => [d.date, d.limit]);
+    sheet.getRange(2, 1, rows.length, 2).setValues(rows);
+  }
+}
+
+// --- ฟังก์ชันเสริม ---
+function getSheet(sheetName) {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  let sheet = ss.getSheetByName(sheetName);
+  if (!sheet) {
+    throw new Error('Sheet "' + sheetName + '" not found. Please check sheet names.');
+  }
+  return sheet;
+}
+
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
+function createJsonResponse(data) {
+  return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.JSON);
+}
