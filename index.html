@@ -133,8 +133,7 @@
                     result.trainingDates.forEach(d => {
                         const option = document.createElement('option');
                         option.value = d.date;
-                        // option.textContent = d.display; // บรรทัดเดิมที่แสดง "(ว่าง x คน)"
-                        option.textContent = d.display.split('(')[0].trim(); // บรรทัดใหม่ที่ซ่อน "(ว่าง x คน)"
+                        option.textContent = d.display.split('(')[0].trim();
                         trainingDateSelect.appendChild(option);
                     });
                 } else {
@@ -251,7 +250,7 @@
             question.o.forEach((option, index) => {
                 const button = document.createElement('button');
                 button.textContent = option;
-                button.className = 'option-btn w-full text-left p-4 bg-white border-2 border-gray-200 rounded-xl hover:bg-gray-100 focus:outline-none transition';
+                button.className = 'option-btn w-full text-left p-4 bg-white border-2 border-gray-200 rounded-xl focus:outline-none transition';
                 button.onclick = () => selectOption(button, index, question.a);
                 optionsContainer.appendChild(button);
             });
@@ -268,7 +267,7 @@
                 btn.disabled = true;
             });
 
-            selectedButton.classList.remove('bg-white', 'border-gray-200', 'hover:bg-gray-100');
+            selectedButton.classList.remove('bg-white', 'border-gray-200');
             selectedButton.classList.add('bg-indigo-600', 'text-white', 'border-transparent');
             selectedButton.blur();
 
